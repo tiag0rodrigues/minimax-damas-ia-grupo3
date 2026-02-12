@@ -17,7 +17,7 @@ A proposta envolve também a criação da interface do jogo usando <strong>Strea
   <li>Clonar repositório</li>
   <ul>
     <li>Abra o terminal com diretório dentro da pasta de sua escolha</li>
-    <li>Execute o comando "git clone "</li>
+    <li>Execute o comando: git clone https://github.com/tiag0rodrigues/minimax-damas-ia-grupo3.git</li>
     <li>No terminal, navegue até a pasta do repositório clonado "minimax-damas-ia-grupo3"</li>
   </ul>
   <li>Criar ambiente virtual do Python (venv)</li>
