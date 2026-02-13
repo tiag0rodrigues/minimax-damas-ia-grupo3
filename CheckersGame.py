@@ -4,15 +4,21 @@ import copy
 # Representação do jogo da DAMA INGLESA
 # -------------------------
 # Tabuleiro
-# 'b' = peça preta (MAX) - só andam para frente
-# 'w' = peça branca (MIN) - só andam para frente
+# 'b' = peça preta (MAX) - só andam e capturam para frente
+# 'w' = peça branca (MIN) - só andam e capturam para frente
 # 'B' = dama preta - 1 casa por vez para frente e para trás
 # 'W' = dama branca - 1 casa por vez para frente e para trás
 # '.' = vazio
+# -----------------------
+# Outras regras
+# A captura é obrigatória
+# Se houver mais de uma captura disponível com a mesma peça, tem que realizar todas as capturas
+# O jogo termina quando todas as peças do adversário são capturadas ou quando há um empate (repetição)
 
 class CheckersGame:
     def __init__(self, size=4):
         self.size = size
+        self.capture = None
 
     def TO_MOVE(self, state):
         return state["player"]
@@ -44,6 +50,12 @@ class CheckersGame:
                         if 0 <= nr < self.size and 0 <= nc < self.size:
                             action = ((r, c), (nr, nc))
                             if self.IS_VALID_ACTION(state, action):
+                                # Verifica se continua de outra captura
+                                if self.capture is not None and self.capture["player"] == player:
+                                    (r1, c1), (r2, c2) = self.capture["action"]
+                                    if r == r2 and c == c2:
+                                        self.capture = None
+                                        return [action] #retorna a única jogada permitida
                                 captures.append(action)
                         
                         # 2. Verificar Movimento Simples
@@ -89,13 +101,17 @@ class CheckersGame:
         }
         actions = self.ACTIONS(new_state)
         next_player = "."
-        if actions:
+        if abs(r2 - r1) == 2 and actions:
             for act in actions:
                 (source_r, source_c), (dest_r, dest_c) = act
                 dr, dc =  dest_r - source_r, dest_c - source_c
                 if abs(dr) == 2 and abs(dc) == 2:
                     if source_r == r2 and source_c == c2:
                         next_player = player # jogador continua jogada
+                        self.capture = { # guarda captura
+                            "player": next_player,
+                            "action": action
+                        }
                         break
 
         if next_player == ".":
