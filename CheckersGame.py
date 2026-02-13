@@ -6,8 +6,8 @@ import copy
 # Tabuleiro
 # 'b' = peça preta (MAX) - só andam e capturam para frente
 # 'w' = peça branca (MIN) - só andam e capturam para frente
-# 'B' = dama preta - 1 casa por vez para frente e para trás
-# 'W' = dama branca - 1 casa por vez para frente e para trás
+# 'B' = dama preta - andam e capturam para frente e para trás 1 casa por vez
+# 'W' = dama branca - andam e capturam para frente e para trás 1 casa por vez
 # '.' = vazio
 # -----------------------
 # Outras regras
