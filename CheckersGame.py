@@ -12,7 +12,7 @@ import copy
 # -----------------------
 # Outras regras
 # A captura é obrigatória
-# Se houver mais de uma captura disponível com a mesma peça, tem que realizar todas as capturas
+# Se, após uma captura, houver mais uma captura disponível para a mesma peça, é obrigatório realizar todas as capturas
 # O jogo termina quando todas as peças do adversário são capturadas ou quando há um empate (repetição)
 
 class CheckersGame:

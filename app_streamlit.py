@@ -52,7 +52,19 @@ st.markdown("""
     border-radius: 0%;
     background-color: #7b3f00; /* Cor de madeira escura */
     background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
-}        
+}
+            
+[class*="dark-square-selected"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button){
+    width: 68px;
+    height: 68px;
+    display: flex;
+    border-radius: 0%;
+    background-color: #7b3f00; /* Cor de madeira escura */
+    background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
+    box-shadow: 
+        0 0 0 3px rgba(255, 215, 0, 0.8),
+        0 0 15px rgba(255, 215, 0, 0.6);
+} 
 
 [class*="light-square"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button){                    
     width: 68px;
@@ -80,6 +92,27 @@ st.markdown("""
     box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
             
+[class*="black-king"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button) > div::before  {
+    content: '♛';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: white;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+            
+[class*="white-king"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button) > div::before  {
+    content: '♛';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: black;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
         
 [class*="black-piece"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button) > div{   
     background: radial-gradient(circle at 30% 30%, #444, #111);
@@ -108,14 +141,17 @@ for i in range(size):
                     update_state()
             else:
                 cols[j].button(" ", key=f"light-square-{i}-{j}")
-        elif st.session_state.state['board'][i][j] in ['b', 'B']:
+        elif st.session_state.state['board'][i][j] == 'b':
             cols[j].button(" ", key=f"black-piece-dark-square-{i}-{j}")
-        else:
-            if cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', 'W']:
-                st.session_state.action = ((i, j), ())
+        elif st.session_state.state['board'][i][j] == 'B':
+            cols[j].button(" ", key=f"black-piece-black-king-dark-square-{i}-{j}")
+        elif st.session_state.state['board'][i][j] == 'w' and cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            st.session_state.action = ((i, j), ())
+        elif st.session_state.state['board'][i][j] == 'W' and cols[j].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            st.session_state.action = ((i, j), ())
 
 
-if st.session_state.start_ai and st.session_state.state['player'] in ['b', 'B']:
+if st.session_state.start_ai and st.session_state.state['player'] == 'b':
     move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(game, st.session_state.state, depth=depth)
     if move is not None:
         st.session_state.state = game.RESULT(st.session_state.state, move)
