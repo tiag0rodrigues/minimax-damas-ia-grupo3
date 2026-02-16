@@ -33,6 +33,9 @@ if st.button("Iniciar jogada da IA"):
 if "action" not in st.session_state:
     st.session_state.action = ((), ()) 
 
+if "selected" not in st.session_state:
+    st.session_state.selected = None
+
 def valid_move(dest_line, dest_col):
     act = (st.session_state.action[0], (dest_line, dest_col))
     if act in game.ACTIONS(st.session_state.state):
@@ -54,13 +57,7 @@ st.markdown("""
     background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
 }
             
-[class*="dark-square-selected"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button){
-    width: 68px;
-    height: 68px;
-    display: flex;
-    border-radius: 0%;
-    background-color: #7b3f00; /* Cor de madeira escura */
-    background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
+[class*="selected"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button){
     box-shadow: 
         0 0 0 3px rgba(255, 215, 0, 0.8),
         0 0 15px rgba(255, 215, 0, 0.6);
@@ -145,10 +142,24 @@ for i in range(size):
             cols[j].button(" ", key=f"black-piece-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'B':
             cols[j].button(" ", key=f"black-piece-black-king-dark-square-{i}-{j}")
-        elif st.session_state.state['board'][i][j] == 'w' and cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
-            st.session_state.action = ((i, j), ())
-        elif st.session_state.state['board'][i][j] == 'W' and cols[j].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
-            st.session_state.action = ((i, j), ())
+        elif st.session_state.state['board'][i][j] == 'w':
+            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+                st.session_state.selected = (i, j)
+                st.session_state.action = ((i, j), ())
+                st.rerun()
+            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+                st.session_state.selected = (i, j)
+                st.session_state.action = ((i, j), ())
+                st.rerun()
+        else:
+            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+                st.session_state.selected = (i, j)
+                st.session_state.action = ((i, j), ())
+                st.rerun()
+            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+                st.session_state.selected = (i, j)
+                st.session_state.action = ((i, j), ())
+                st.rerun()
 
 
 if st.session_state.start_ai and st.session_state.state['player'] == 'b':
