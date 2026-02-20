@@ -22,7 +22,7 @@ game = CheckersGame(size)
 
 if "state" not in st.session_state:
     st.session_state.state = initial_state
-st.set_page_config(layout="wide")
+st.set_page_config(layout="centered")
 st.title("Bem vindo ao Jogo de Damas")
 
 if "start_ai" not in st.session_state:
@@ -119,10 +119,6 @@ st.markdown("""
 [class*="white-piece"] > .stButton > button[data-testid="stBaseButton-secondary"]:not(.st-key-start_ai_key button) > div{
     background: radial-gradient(circle at 30% 30%, #fff, #d2b48c);
     border: 1px solid #bda078;
-}
-
-[class="st-emotion-cache-13tbzbm"] {
-    margin-left: -140px !important;
 }
 </style>
 """, unsafe_allow_html=True)
