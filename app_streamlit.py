@@ -160,7 +160,7 @@ for i in range(size):
 
 
 if st.session_state.start_ai and st.session_state.state['player'] == 'b':
-    time.sleep(2)
+    time.sleep(1)
     move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(game, st.session_state.state, depth=depth)
     if move is not None:
         st.session_state.state = game.RESULT(st.session_state.state, move)
