@@ -5,6 +5,9 @@
 <dd>Tiago Rodrigues dos Santos</dd
 </dl>
 
+<h2>Link do app no Hugging Face Spaces</h2>
+https://huggingface.co/spaces/tiagorodriguesdev/English-Checkers-AI-Minimax-with-Alpha-Beta-Pruning
+
 <h2>Descrição</h2>
 
 Este projeto tem como objetivo desenvolver uma aplicação de jogo de damas inglesas na qual o jogador enfrenta uma inteligência artificial. A IA será implementada utilizando o algoritmo Minimax com poda alfa-beta, permitindo a tomada de decisões estratégicas e a otimização do desempenho ao reduzir a quantidade de estados analisados na árvore de busca.
