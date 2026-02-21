@@ -2,7 +2,7 @@
 
 <dl>
 <dt>Alunos:</dt>
-<dd></dd
+<dd>Tiago Rodrigues dos Santos</dd
 </dl>
 
 <h2>Descrição</h2>
