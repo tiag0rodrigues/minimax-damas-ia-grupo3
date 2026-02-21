@@ -5,8 +5,10 @@
 <dd>Tiago Rodrigues dos Santos</dd
 </dl>
 
-<h2>Link do app no Hugging Face Spaces</h2>
+<dl>
+<dt>Link do app no Hugging Face Spaces</dt>
 https://huggingface.co/spaces/tiagorodriguesdev/English-Checkers-AI-Minimax-with-Alpha-Beta-Pruning
+</dl>
 
 <h2>Descrição</h2>
 
