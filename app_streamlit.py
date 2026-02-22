@@ -15,10 +15,12 @@ initial_board = [
 ]
 initial_state = {
     "board": initial_board,
-    "player": "b"  # MAX começa
+    "player": "b"
 }
 size = 8
 depth = 6
+draw_condition = 40
+draw_condition_checkers = 10
 game = CheckersGame(size)
 
 if "state" not in st.session_state:
@@ -88,14 +90,14 @@ def check_game_over(state):
         else:
             return "Brancas venceram! (Sem movimentos)"
 
-    # 🟡 EMPATE POR ESTAGNAÇÃO
+    # Empate por estagnação
     if len(white_pieces) == 1 and len(black_pieces) == 1:
         if white_pieces[0] == 'W' and black_pieces[0] == 'B':
-            if st.session_state.moves_without_capture >= 10:
+            if st.session_state.moves_without_capture >= draw_condition_checkers:
                 return "Empate! (1 dama vs 1 dama sem captura)"
 
-    # 🟡 EMPATE POR MUITAS JOGADAS SEM CAPTURA
-    if st.session_state.moves_without_capture >= 40:
+    # Empate por muitas jogadas sem capturas
+    if st.session_state.moves_without_capture >= draw_condition:
         return "Empate! (Muitas jogadas sem captura)"
 
     return None
@@ -143,7 +145,6 @@ def update_state():
         for row in old_board
     )
 
-    # Aplica jogada
     st.session_state.state = game.RESULT(
         st.session_state.state,
         st.session_state.action
@@ -257,7 +258,6 @@ for j in range(size):
 for i in range(size):
     cols = st.columns(size + 1)
 
-    # Número da linha
     cols[0].write(size - i)
 
     for j in range(size):
