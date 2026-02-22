@@ -30,6 +30,9 @@ if "action" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = None
 
+if "game_over" not in st.session_state:
+    st.session_state.game_over = None
+
 if "last_move_ai" not in st.session_state:
     st.session_state.last_move_ai = "Nenhuma jogada ainda"
 
@@ -39,8 +42,50 @@ if "last_move_player" not in st.session_state:
 st.set_page_config(layout="centered")
 st.title("Bem vindo ao Jogo de Damas")
 
+if st.session_state.game_over:
+    st.markdown("## 🏆 Fim de Jogo")
+    st.error(st.session_state.game_over)
+
+    if st.button("🔄 Reiniciar Partida"):
+        st.session_state.state = initial_state
+        st.session_state.game_over = None
+        st.session_state.last_move_ai = "Nenhuma jogada ainda"
+        st.session_state.last_move_player = "Nenhuma jogada ainda"
+        st.rerun()
+
+    st.stop()
+
 st.markdown("### 🤖 Última Jogada da IA")
 st.write(st.session_state.last_move_ai)
+
+
+def check_game_over(state):
+    board = state["board"]
+
+    white_exists = False
+    black_exists = False
+
+    for row in board:
+        for piece in row:
+            if piece in ['w', 'W']:
+                white_exists = True
+            if piece in ['b', 'B']:
+                black_exists = True
+
+    if not white_exists:
+        return "Pretas venceram!"
+    if not black_exists:
+        return "Brancas venceram!"
+
+    # Verificar se o jogador atual tem movimentos
+    possible_moves = game.ACTIONS(state)
+    if len(possible_moves) == 0:
+        if state["player"] in ['w', 'W']:
+            return "Pretas venceram! (Sem movimentos)"
+        else:
+            return "Brancas venceram! (Sem movimentos)"
+
+    return None
 
 
 def valid_move(dest_line, dest_col):
@@ -206,6 +251,7 @@ for i in range(size):
 st.markdown("### 👤 Última Jogada do Jogador")
 st.write(st.session_state.last_move_player)
 
+
 if st.session_state.state['player'] == 'b':
     with st.spinner("IA pensando..."):
         time.sleep(0.5)
@@ -227,6 +273,10 @@ if st.session_state.state['player'] == 'b':
                 st.session_state.state,
                 move
             )
+
+            result = check_game_over(st.session_state.state)
+            if result:
+                st.session_state.game_over = result
 
     st.session_state.selected = None
     st.session_state.action = ((), ())
