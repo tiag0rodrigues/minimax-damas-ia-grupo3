@@ -348,3 +348,24 @@ if st.session_state.state['player'] == 'b':
     st.session_state.action = ((), ())
 
     st.rerun()
+
+if st.button("🔄 Reiniciar Partida"):
+    st.session_state.state = {
+        "board": [
+            [".", "b", ".", "b", ".", "b", ".", "b"],
+            ["b", ".", "b", ".", "b", ".", "b", "."],
+            [".", "b", ".", "b", ".", "b", ".", "b"],
+            [".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", "."],
+            ["w", ".", "w", ".", "w", ".", "w", "."],
+            [".", "w", ".", "w", ".", "w", ".", "w"],
+            ["w", ".", "w", ".", "w", ".", "w", "."]
+        ],
+        "player": "b"
+    }
+    st.session_state.action = ((), ())
+    st.session_state.selected = None
+    st.session_state.game_over = None
+    st.session_state.last_move_ai = "Nenhuma jogada ainda"
+    st.session_state.last_move_player = "Nenhuma jogada ainda"
+    st.rerun()
