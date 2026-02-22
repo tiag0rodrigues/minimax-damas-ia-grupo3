@@ -26,26 +26,31 @@ if "state" not in st.session_state:
 st.set_page_config(layout="centered")
 st.title("Bem vindo ao Jogo de Damas")
 
-if "start_ai" not in st.session_state:
-    st.session_state.start_ai = False
-if st.button("Iniciar jogada da IA"):
-    st.session_state.start_ai = True
-
 if "action" not in st.session_state:
-    st.session_state.action = ((), ()) 
+    st.session_state.action = ((), ())
 
 if "selected" not in st.session_state:
     st.session_state.selected = None
+
 
 def valid_move(dest_line, dest_col):
     act = (st.session_state.action[0], (dest_line, dest_col))
     if act in game.ACTIONS(st.session_state.state):
         return True
     return False
-        
+
+
 def update_state():
-    st.session_state.state = game.RESULT(st.session_state.state, st.session_state.action)
+    st.session_state.state = game.RESULT(
+        st.session_state.state,
+        st.session_state.action
+    )
+
+    st.session_state.selected = None
+    st.session_state.action = ((), ())
+
     st.rerun()
+
 
 st.markdown("""
 <style>
@@ -130,15 +135,17 @@ for i in range(size):
     for j in range(size):
         if st.session_state.state['board'][i][j] == ".":
             if (i + j) % 2 != 0:
-                if cols[j].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', ' W'] and st.session_state.action[0] != () and valid_move(i, j):
-                    st.session_state.action = (st.session_state.action[0], (i, j)) 
+                if cols[j].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', 'W'] and st.session_state.action[0] != () and valid_move(i, j):
+                    st.session_state.action = (
+                        st.session_state.action[0], (i, j))
                     update_state()
             else:
                 cols[j].button(" ", key=f"light-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'b':
             cols[j].button(" ", key=f"black-piece-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'B':
-            cols[j].button(" ", key=f"black-piece-black-king-dark-square-{i}-{j}")
+            cols[j].button(
+                " ", key=f"black-piece-black-king-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'w':
             if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
@@ -159,9 +166,26 @@ for i in range(size):
                 st.rerun()
 
 
-if st.session_state.start_ai and st.session_state.state['player'] == 'b':
-    time.sleep(1)
-    move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(game, st.session_state.state, depth=depth)
-    if move is not None:
-        st.session_state.state = game.RESULT(st.session_state.state, move)
-        st.rerun()
+# ---------- IA AUTOMÁTICA ----------
+
+if st.session_state.state['player'] == 'b':
+    with st.spinner("IA pensando..."):
+        time.sleep(0.5)
+
+        move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(
+            game,
+            st.session_state.state,
+            depth=depth
+        )
+
+        if move is not None:
+            st.session_state.state = game.RESULT(
+                st.session_state.state,
+                move
+            )
+
+    # limpa seleção depois da jogada da IA
+    st.session_state.selected = None
+    st.session_state.action = ((), ())
+
+    st.rerun()
