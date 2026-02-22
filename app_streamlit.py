@@ -33,6 +33,9 @@ if "selected" not in st.session_state:
 if "game_over" not in st.session_state:
     st.session_state.game_over = None
 
+if "moves_without_capture" not in st.session_state:
+    st.session_state.moves_without_capture = 0
+
 if "last_move_ai" not in st.session_state:
     st.session_state.last_move_ai = "Nenhuma jogada ainda"
 
@@ -51,6 +54,7 @@ if st.session_state.game_over:
         st.session_state.game_over = None
         st.session_state.last_move_ai = "Nenhuma jogada ainda"
         st.session_state.last_move_player = "Nenhuma jogada ainda"
+        st.session_state.moves_without_capture = 0
         st.rerun()
 
     st.stop()
@@ -62,20 +66,39 @@ st.write(st.session_state.last_move_ai)
 def check_game_over(state):
     board = state["board"]
 
-    white_exists = False
-    black_exists = False
+    white_pieces = []
+    black_pieces = []
 
     for row in board:
         for piece in row:
             if piece in ['w', 'W']:
-                white_exists = True
+                white_pieces.append(piece)
             if piece in ['b', 'B']:
-                black_exists = True
+                black_pieces.append(piece)
 
-    if not white_exists:
+    if not white_pieces:
         return "Pretas venceram!"
-    if not black_exists:
+    if not black_pieces:
         return "Brancas venceram!"
+
+    possible_moves = game.ACTIONS(state)
+    if len(possible_moves) == 0:
+        if state["player"] in ['w', 'W']:
+            return "Pretas venceram! (Sem movimentos)"
+        else:
+            return "Brancas venceram! (Sem movimentos)"
+
+    # 🟡 EMPATE POR ESTAGNAÇÃO
+    if len(white_pieces) == 1 and len(black_pieces) == 1:
+        if white_pieces[0] == 'W' and black_pieces[0] == 'B':
+            if st.session_state.moves_without_capture >= 10:
+                return "Empate! (1 dama vs 1 dama sem captura)"
+
+    # 🟡 EMPATE POR MUITAS JOGADAS SEM CAPTURA
+    if st.session_state.moves_without_capture >= 40:
+        return "Empate! (Muitas jogadas sem captura)"
+
+    return None
 
     # Verificar se o jogador atual tem movimentos
     possible_moves = game.ACTIONS(state)
@@ -112,14 +135,36 @@ def coord_to_notation(pos):
 def update_state():
     source, dest = st.session_state.action
 
-    st.session_state.last_move_player = (
-        f"{to_notation(source)} → {to_notation(dest)}"
+    old_board = st.session_state.state["board"]
+
+    old_pieces = sum(
+        row.count('b') + row.count('B') +
+        row.count('w') + row.count('W')
+        for row in old_board
     )
 
+    # Aplica jogada
     st.session_state.state = game.RESULT(
         st.session_state.state,
         st.session_state.action
     )
+
+    new_board = st.session_state.state["board"]
+
+    new_pieces = sum(
+        row.count('b') + row.count('B') +
+        row.count('w') + row.count('W')
+        for row in new_board
+    )
+
+    if new_pieces < old_pieces:
+        move_text = f"{to_notation(source)} → {to_notation(dest)} (captura)"
+        st.session_state.moves_without_capture = 0
+    else:
+        move_text = f"{to_notation(source)} → {to_notation(dest)}"
+        st.session_state.moves_without_capture += 1
+
+    st.session_state.last_move_player = move_text
 
     st.session_state.selected = None
     st.session_state.action = ((), ())
@@ -265,14 +310,35 @@ if st.session_state.state['player'] == 'b':
         if move is not None:
             source, dest = move
 
-            st.session_state.last_move_ai = (
-                f"{to_notation(source)} → {to_notation(dest)}"
+            old_board = st.session_state.state["board"]
+
+            old_pieces = sum(
+                row.count('b') + row.count('B') +
+                row.count('w') + row.count('W')
+                for row in old_board
             )
 
             st.session_state.state = game.RESULT(
                 st.session_state.state,
                 move
             )
+
+            new_board = st.session_state.state["board"]
+
+            new_pieces = sum(
+                row.count('b') + row.count('B') +
+                row.count('w') + row.count('W')
+                for row in new_board
+            )
+
+            if new_pieces < old_pieces:
+                move_text = f"{to_notation(source)} → {to_notation(dest)} (captura)"
+                st.session_state.moves_without_capture = 0
+            else:
+                move_text = f"{to_notation(source)} → {to_notation(dest)}"
+                st.session_state.moves_without_capture += 1
+
+            st.session_state.last_move_ai = move_text
 
             result = check_game_over(st.session_state.state)
             if result:
