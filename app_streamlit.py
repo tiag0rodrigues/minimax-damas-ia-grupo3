@@ -160,37 +160,45 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Renderiza o tabuleiro
+top_cols = st.columns(size + 1)
+top_cols[0].write("")
+for j in range(size):
+    top_cols[j + 1].write(chr(ord('a') + j))
 for i in range(size):
-    cols = st.columns(size)
+    cols = st.columns(size + 1)
+
+    # Número da linha
+    cols[0].write(size - i)
+
     for j in range(size):
         if st.session_state.state['board'][i][j] == ".":
             if (i + j) % 2 != 0:
-                if cols[j].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', 'W'] and st.session_state.action[0] != () and valid_move(i, j):
+                if cols[j + 1].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', 'W'] and st.session_state.action[0] != () and valid_move(i, j):
                     st.session_state.action = (
                         st.session_state.action[0], (i, j))
                     update_state()
             else:
-                cols[j].button(" ", key=f"light-square-{i}-{j}")
+                cols[j + 1].button(" ", key=f"light-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'b':
-            cols[j].button(" ", key=f"black-piece-dark-square-{i}-{j}")
+            cols[j + 1].button(" ", key=f"black-piece-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'B':
-            cols[j].button(
+            cols[j + 1].button(
                 " ", key=f"black-piece-black-king-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'w':
-            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+            if (i, j) == st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
-            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            elif (i, j) != st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
         else:
-            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+            if (i, j) == st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-white-king-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
-            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            elif (i, j) != st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
