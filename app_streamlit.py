@@ -23,14 +23,21 @@ game = CheckersGame(size)
 
 if "state" not in st.session_state:
     st.session_state.state = initial_state
-st.set_page_config(layout="centered")
-st.title("Bem vindo ao Jogo de Damas")
 
 if "action" not in st.session_state:
     st.session_state.action = ((), ())
 
 if "selected" not in st.session_state:
     st.session_state.selected = None
+
+if "last_move" not in st.session_state:
+    st.session_state.last_move = "Nenhuma jogada ainda"
+
+st.set_page_config(layout="centered")
+st.title("Bem vindo ao Jogo de Damas")
+
+st.subheader("Última Jogada")
+st.write(st.session_state.last_move)
 
 
 def valid_move(dest_line, dest_col):
@@ -40,7 +47,23 @@ def valid_move(dest_line, dest_col):
     return False
 
 
+def coord_to_notation(pos):
+    row, col = pos
+    letter = chr(ord('a') + col)
+    number = 8 - row
+    return f"{letter}{number}"
+
+
 def update_state():
+    origem, destino = st.session_state.action
+    player = st.session_state.state["player"].upper()
+
+    origem_txt = coord_to_notation(origem)
+    destino_txt = coord_to_notation(destino)
+
+    # salva apenas a última jogada
+    st.session_state.last_move = f"Player {player}: {origem_txt} → {destino_txt}"
+
     st.session_state.state = game.RESULT(
         st.session_state.state,
         st.session_state.action
@@ -179,12 +202,18 @@ if st.session_state.state['player'] == 'b':
         )
 
         if move is not None:
+            origem, destino = move
+
+            origem_txt = coord_to_notation(origem)
+            destino_txt = coord_to_notation(destino)
+
+            st.session_state.last_move = f"Player B: {origem_txt} → {destino_txt}"
+
             st.session_state.state = game.RESULT(
                 st.session_state.state,
                 move
             )
 
-    # limpa seleção depois da jogada da IA
     st.session_state.selected = None
     st.session_state.action = ((), ())
 
