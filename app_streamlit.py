@@ -30,14 +30,17 @@ if "action" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = None
 
-if "last_move" not in st.session_state:
-    st.session_state.last_move = "Nenhuma jogada ainda"
+if "last_move_ai" not in st.session_state:
+    st.session_state.last_move_ai = "Nenhuma jogada ainda"
+
+if "last_move_player" not in st.session_state:
+    st.session_state.last_move_player = "Nenhuma jogada ainda"
 
 st.set_page_config(layout="centered")
 st.title("Bem vindo ao Jogo de Damas")
 
-st.subheader("Última Jogada")
-st.write(st.session_state.last_move)
+st.markdown("### 🤖 Última Jogada da IA")
+st.write(st.session_state.last_move_ai)
 
 
 def valid_move(dest_line, dest_col):
@@ -45,6 +48,13 @@ def valid_move(dest_line, dest_col):
     if act in game.ACTIONS(st.session_state.state):
         return True
     return False
+
+
+def to_notation(pos):
+    row, col = pos
+    col_letter = chr(ord('a') + col)
+    row_number = size - row
+    return f"{col_letter}{row_number}"
 
 
 def coord_to_notation(pos):
@@ -55,14 +65,11 @@ def coord_to_notation(pos):
 
 
 def update_state():
-    origem, destino = st.session_state.action
-    player = st.session_state.state["player"].upper()
+    source, dest = st.session_state.action
 
-    origem_txt = coord_to_notation(origem)
-    destino_txt = coord_to_notation(destino)
-
-    # salva apenas a última jogada
-    st.session_state.last_move = f"Player {player}: {origem_txt} → {destino_txt}"
+    st.session_state.last_move_player = (
+        f"{to_notation(source)} → {to_notation(dest)}"
+    )
 
     st.session_state.state = game.RESULT(
         st.session_state.state,
@@ -188,8 +195,8 @@ for i in range(size):
                 st.session_state.action = ((i, j), ())
                 st.rerun()
 
-
-# ---------- IA AUTOMÁTICA ----------
+st.markdown("### 👤 Última Jogada do Jogador")
+st.write(st.session_state.last_move_player)
 
 if st.session_state.state['player'] == 'b':
     with st.spinner("IA pensando..."):
@@ -202,12 +209,11 @@ if st.session_state.state['player'] == 'b':
         )
 
         if move is not None:
-            origem, destino = move
+            source, dest = move
 
-            origem_txt = coord_to_notation(origem)
-            destino_txt = coord_to_notation(destino)
-
-            st.session_state.last_move = f"Player B: {origem_txt} → {destino_txt}"
+            st.session_state.last_move_ai = (
+                f"{to_notation(source)} → {to_notation(dest)}"
+            )
 
             st.session_state.state = game.RESULT(
                 st.session_state.state,
