@@ -2,7 +2,7 @@
 
 <dl>
 <dt>Alunos:</dt>
-<dd>Tiago Rodrigues dos Santos</dd
+<dd>Tiago Rodrigues dos Santos, José Victor Ribeiro de Jesus</dd
 </dl>
 
 <dl>
