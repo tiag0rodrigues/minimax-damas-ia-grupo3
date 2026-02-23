@@ -2,7 +2,11 @@
 
 <dl>
 <dt>Alunos:</dt>
-<dd>Tiago Rodrigues dos Santos, José Victor Ribeiro de Jesus</dd
+<dd>GABRIELLA NASCIMENTO DOS SANTOS DA SILVA</dd>
+<dd>JOÃO VINÍCIUS DE ALMEIDA ARGOLO</dd>
+<dd>JOSÉ VICTOR RIBEIRO DE JESUS</dd>
+<dd>MARIANA SILVA COSTA</dd>
+<dd>TIAGO RODRIGUES DOS SANTOS</dd>
 </dl>
 
 <dl>
