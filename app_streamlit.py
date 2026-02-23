@@ -15,37 +15,165 @@ initial_board = [
 ]
 initial_state = {
     "board": initial_board,
-    "player": "b"  # MAX começa
+    "player": "b",  # MAX começa
+    "must_capture_with": None,
+    "history": set()
 }
 size = 8
 depth = 6
+draw_condition = 40
+draw_condition_checkers = 10
 game = CheckersGame(size)
 
 if "state" not in st.session_state:
     st.session_state.state = initial_state
-st.set_page_config(layout="centered")
-st.title("Bem vindo ao Jogo de Damas")
-
-if "start_ai" not in st.session_state:
-    st.session_state.start_ai = False
-if st.button("Iniciar jogada da IA"):
-    st.session_state.start_ai = True
 
 if "action" not in st.session_state:
-    st.session_state.action = ((), ()) 
+    st.session_state.action = ((), ())
 
 if "selected" not in st.session_state:
     st.session_state.selected = None
+
+if "game_over" not in st.session_state:
+    st.session_state.game_over = None
+
+if "moves_without_capture" not in st.session_state:
+    st.session_state.moves_without_capture = 0
+
+if "last_move_ai" not in st.session_state:
+    st.session_state.last_move_ai = "Nenhuma jogada ainda"
+
+if "last_move_player" not in st.session_state:
+    st.session_state.last_move_player = "Nenhuma jogada ainda"
+
+st.set_page_config(layout="centered")
+st.title("Bem vindo ao Jogo de Damas")
+
+if st.session_state.game_over:
+    st.markdown("## 🏆 Fim de Jogo")
+    st.error(st.session_state.game_over)
+
+    if st.button("🔄 Reiniciar Partida"):
+        st.session_state.state = initial_state
+        st.session_state.game_over = None
+        st.session_state.last_move_ai = "Nenhuma jogada ainda"
+        st.session_state.last_move_player = "Nenhuma jogada ainda"
+        st.session_state.moves_without_capture = 0
+        st.rerun()
+
+    st.stop()
+
+st.markdown("### 🤖 Última Jogada da IA")
+st.write(st.session_state.last_move_ai)
+
+
+def check_game_over(state):
+    board = state["board"]
+
+    white_pieces = []
+    black_pieces = []
+
+    for row in board:
+        for piece in row:
+            if piece in ['w', 'W']:
+                white_pieces.append(piece)
+            if piece in ['b', 'B']:
+                black_pieces.append(piece)
+
+    if not white_pieces:
+        return "Pretas venceram!"
+    if not black_pieces:
+        return "Brancas venceram!"
+
+    possible_moves = game.ACTIONS(state)
+    if len(possible_moves) == 0:
+        if state["player"] in ['w', 'W']:
+            return "Pretas venceram! (Sem movimentos)"
+        else:
+            return "Brancas venceram! (Sem movimentos)"
+
+    # Empate por estagnação
+    if len(white_pieces) == 1 and len(black_pieces) == 1:
+        if white_pieces[0] == 'W' and black_pieces[0] == 'B':
+            if st.session_state.moves_without_capture >= draw_condition_checkers:
+                return "Empate! (1 dama vs 1 dama sem captura)"
+
+    # Empate por muitas jogadas sem capturas
+    if st.session_state.moves_without_capture >= draw_condition:
+        return "Empate! (Muitas jogadas sem captura)"
+
+    return None
+
+    # Verificar se o jogador atual tem movimentos
+    possible_moves = game.ACTIONS(state)
+    if len(possible_moves) == 0:
+        if state["player"] in ['w', 'W']:
+            return "Pretas venceram! (Sem movimentos)"
+        else:
+            return "Brancas venceram! (Sem movimentos)"
+
+    return None
+
 
 def valid_move(dest_line, dest_col):
     act = (st.session_state.action[0], (dest_line, dest_col))
     if act in game.ACTIONS(st.session_state.state):
         return True
     return False
-        
+
+
+def to_notation(pos):
+    row, col = pos
+    col_letter = chr(ord('a') + col)
+    row_number = size - row
+    return f"{col_letter}{row_number}"
+
+
+def coord_to_notation(pos):
+    row, col = pos
+    letter = chr(ord('a') + col)
+    number = 8 - row
+    return f"{letter}{number}"
+
+
 def update_state():
-    st.session_state.state = game.RESULT(st.session_state.state, st.session_state.action)
+    source, dest = st.session_state.action
+
+    old_board = st.session_state.state["board"]
+
+    old_pieces = sum(
+        row.count('b') + row.count('B') +
+        row.count('w') + row.count('W')
+        for row in old_board
+    )
+
+    st.session_state.state = game.RESULT(
+        st.session_state.state,
+        st.session_state.action
+    )
+
+    new_board = st.session_state.state["board"]
+
+    new_pieces = sum(
+        row.count('b') + row.count('B') +
+        row.count('w') + row.count('W')
+        for row in new_board
+    )
+
+    if new_pieces < old_pieces:
+        move_text = f"{to_notation(source)} → {to_notation(dest)} (captura)"
+        st.session_state.moves_without_capture = 0
+    else:
+        move_text = f"{to_notation(source)} → {to_notation(dest)}"
+        st.session_state.moves_without_capture += 1
+
+    st.session_state.last_move_player = move_text
+
+    st.session_state.selected = None
+    st.session_state.action = ((), ())
+
     st.rerun()
+
 
 st.markdown("""
 <style>
@@ -125,43 +253,121 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Renderiza o tabuleiro
+top_cols = st.columns(size + 1)
+top_cols[0].write("")
+for j in range(size):
+    top_cols[j + 1].write(chr(ord('a') + j))
 for i in range(size):
-    cols = st.columns(size)
+    cols = st.columns(size + 1)
+
+    cols[0].write(size - i)
+
     for j in range(size):
         if st.session_state.state['board'][i][j] == ".":
             if (i + j) % 2 != 0:
-                if cols[j].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', ' W'] and st.session_state.action[0] != () and valid_move(i, j):
-                    st.session_state.action = (st.session_state.action[0], (i, j)) 
+                if cols[j + 1].button(" ", key=f"dark-square-{i}-{j}") and st.session_state.state['player'] in ['w', 'W'] and st.session_state.action[0] != () and valid_move(i, j):
+                    st.session_state.action = (
+                        st.session_state.action[0], (i, j))
                     update_state()
             else:
-                cols[j].button(" ", key=f"light-square-{i}-{j}")
+                cols[j + 1].button(" ", key=f"light-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'b':
-            cols[j].button(" ", key=f"black-piece-dark-square-{i}-{j}")
+            cols[j + 1].button(" ", key=f"black-piece-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'B':
-            cols[j].button(" ", key=f"black-piece-black-king-dark-square-{i}-{j}")
+            cols[j + 1].button(
+                " ", key=f"black-piece-black-king-dark-square-{i}-{j}")
         elif st.session_state.state['board'][i][j] == 'w':
-            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+            if (i, j) == st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
-            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            elif (i, j) != st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
         else:
-            if (i, j) == st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
+            if (i, j) == st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-white-king-dark-square-selected-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
-            elif (i, j) != st.session_state.selected and cols[j].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
+            elif (i, j) != st.session_state.selected and cols[j + 1].button(" ", key=f"white-piece-white-king-dark-square-{i}-{j}") and st.session_state.state['player'] == 'w':
                 st.session_state.selected = (i, j)
                 st.session_state.action = ((i, j), ())
                 st.rerun()
 
+st.markdown("### 👤 Última Jogada do Jogador")
+st.write(st.session_state.last_move_player)
 
-if st.session_state.start_ai and st.session_state.state['player'] == 'b':
-    time.sleep(1)
-    move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(game, st.session_state.state, depth=depth)
-    if move is not None:
-        st.session_state.state = game.RESULT(st.session_state.state, move)
-        st.rerun()
+
+if st.session_state.state['player'] == 'b':
+    with st.spinner("IA pensando..."):
+        time.sleep(0.5)
+
+        move = MinimaxAlfaBeta.ALPHA_BETA_SEARCH(
+            game,
+            st.session_state.state,
+            depth=depth
+        )
+
+        if move is not None:
+            source, dest = move
+
+            old_board = st.session_state.state["board"]
+
+            old_pieces = sum(
+                row.count('b') + row.count('B') +
+                row.count('w') + row.count('W')
+                for row in old_board
+            )
+
+            st.session_state.state = game.RESULT(
+                st.session_state.state,
+                move
+            )
+
+            new_board = st.session_state.state["board"]
+
+            new_pieces = sum(
+                row.count('b') + row.count('B') +
+                row.count('w') + row.count('W')
+                for row in new_board
+            )
+
+            if new_pieces < old_pieces:
+                move_text = f"{to_notation(source)} → {to_notation(dest)} (captura)"
+                st.session_state.moves_without_capture = 0
+            else:
+                move_text = f"{to_notation(source)} → {to_notation(dest)}"
+                st.session_state.moves_without_capture += 1
+
+            st.session_state.last_move_ai = move_text
+
+            result = check_game_over(st.session_state.state)
+            if result:
+                st.session_state.game_over = result
+
+    st.session_state.selected = None
+    st.session_state.action = ((), ())
+
+    st.rerun()
+
+if st.button("🔄 Reiniciar Partida"):
+    st.session_state.state = {
+        "board": [
+            [".", "b", ".", "b", ".", "b", ".", "b"],
+            ["b", ".", "b", ".", "b", ".", "b", "."],
+            [".", "b", ".", "b", ".", "b", ".", "b"],
+            [".", ".", ".", ".", ".", ".", ".", "."],
+            [".", ".", ".", ".", ".", ".", ".", "."],
+            ["w", ".", "w", ".", "w", ".", "w", "."],
+            [".", "w", ".", "w", ".", "w", ".", "w"],
+            ["w", ".", "w", ".", "w", ".", "w", "."]
+        ],
+        "player": "b"
+    }
+    st.session_state.action = ((), ())
+    st.session_state.selected = None
+    st.session_state.game_over = None
+    st.session_state.last_move_ai = "Nenhuma jogada ainda"
+    st.session_state.last_move_player = "Nenhuma jogada ainda"
+    st.rerun()
