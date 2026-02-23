@@ -15,7 +15,9 @@ initial_board = [
 ]
 initial_state = {
     "board": initial_board,
-    "player": "b"
+    "player": "b",  # MAX começa
+    "must_capture_with": None,
+    "history": set()
 }
 size = 8
 depth = 6

@@ -18,7 +18,6 @@ import copy
 class CheckersGame:
     def __init__(self, size=4):
         self.size = size
-        self.capture = None
 
     def TO_MOVE(self, state):
         return state["player"]
@@ -30,11 +29,18 @@ class CheckersGame:
     def ACTIONS(self, state):
         board = state["board"]
         player = state["player"]
+
+        must_capture_with = state.get("must_capture_with")
+
         captures = []
         moves = []
 
         for r in range(self.size):
             for c in range(self.size):
+                # Impede a captura por peças diferentes num mesmo turno
+                if must_capture_with and (r, c) != must_capture_with:
+                    continue
+
                 piece = board[r][c]
                 if piece.lower() != player:
                     continue
@@ -50,12 +56,6 @@ class CheckersGame:
                         if 0 <= nr < self.size and 0 <= nc < self.size:
                             action = ((r, c), (nr, nc))
                             if self.IS_VALID_ACTION(state, action):
-                                # Verifica se continua de outra captura
-                                if self.capture is not None and self.capture["player"] == player:
-                                    (r1, c1), (r2, c2) = self.capture["action"]
-                                    if r == r2 and c == c2:
-                                        self.capture = None
-                                        return [action] #retorna a única jogada permitida
                                 captures.append(action)
                         
                         # 2. Verificar Movimento Simples
@@ -97,10 +97,14 @@ class CheckersGame:
         new_state = {
             "board": board,
             "player": player,
-            "history": history
+            "history": history,
+            "must_capture_with": None
         }
+
         actions = self.ACTIONS(new_state)
         next_player = "."
+        must_capture_with = None
+
         if abs(r2 - r1) == 2 and actions:
             for act in actions:
                 (source_r, source_c), (dest_r, dest_c) = act
@@ -108,10 +112,7 @@ class CheckersGame:
                 if abs(dr) == 2 and abs(dc) == 2:
                     if source_r == r2 and source_c == c2:
                         next_player = player # jogador continua jogada
-                        self.capture = { # guarda captura
-                            "player": next_player,
-                            "action": action
-                        }
+                        must_capture_with = (r2, c2)
                         break
 
         if next_player == ".":
@@ -121,6 +122,7 @@ class CheckersGame:
             "board": board,
             "player": next_player,
             "history": history,
+            "must_capture_with": must_capture_with
         }
 
     def IS_TERMINAL(self, state):
